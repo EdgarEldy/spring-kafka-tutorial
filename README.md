@@ -1,10 +1,10 @@
 # spring-kafka-tutorial
 
-A complete, hands-on walkthrough of integrating **Kafka** into a **Spring Boot 4.1.x** (Spring Framework 7, Java 17) application, organized into Git branches to cover the essential concepts of event-driven messaging with Spring Kafka.
+A complete, hands-on walkthrough of integrating **Kafka** into a **Spring Boot 3.5.x** (Spring Framework 6, Java 17) application, organized into Git branches to cover the essential concepts of event-driven messaging with Spring Kafka.
 
 The data model follows the `spring-boot-tutorial` tutorial: `categories` → `products` → `orders` ← `customers`.
 
-This document is the **complete specification** of the project: it is meant to be followed step by step (with Claude Code or manually) to implement each branch.
+This document is the **complete specification** of the project: it is meant to be followed step by step to implement each branch.
 
 ## Table of contents
 
@@ -47,7 +47,7 @@ Explaining how Kafka actually works, not just how to annotate a producer/consume
 
 | Component | Choice |
 |---|---|
-| Framework | Spring Boot 4.1.x (Spring Framework 7) |
+| Framework | Spring Boot 3.5.x (Spring Framework 6) |
 | Language | Java 17 (LTS) |
 | Build | Maven |
 | Database | PostgreSQL 16 (via Docker Compose) |
@@ -189,12 +189,14 @@ Same principle as the other tutorials in the series: every HTTP response is wrap
 
 ## feature/core-architecture
 
+Technical foundation shared by the whole project, to be merged first into `develop`. Originally named `feature/config`; renamed to better reflect that it lays out the whole architectural skeleton (config, Docker, CI), not just configuration files.
+
 ### Tasks
 
-- [ ] Initialize the project (Maven, Java 17, Spring Boot 4.1.x)
-- [ ] Dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-validation`, `spring-boot-starter-actuator`, `spring-kafka`, `flyway-core`, `postgresql`, `lombok`, `mapstruct` + `mapstruct-processor`, `springdoc-openapi-starter-webmvc-ui`
-- [ ] Test dependencies: `spring-boot-starter-test`, `spring-kafka-test` (for `EmbeddedKafka`), `testcontainers` (postgresql, kafka)
-- [ ] Package tree shown above
+- [x] Initialize the project via Spring Initializr (Maven, Java 17, Spring Boot 3.5.16)
+- [x] Dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-validation`, `spring-boot-starter-actuator`, `spring-kafka`, `flyway-core`, `flyway-database-postgresql`, `postgresql` driver, `lombok`, `mapstruct` + `mapstruct-processor`, `springdoc-openapi-starter-webmvc-ui`
+- [x] Test dependencies: `spring-boot-starter-test`, `spring-boot-testcontainers`, `spring-kafka-test` (for `EmbeddedKafka`), `testcontainers` (junit-jupiter, postgresql, kafka)
+- [x] Package tree shown above
 - [ ] `application.yml`/`application-dev.yml`: datasource, Kafka config (`bootstrap-servers`, default serializers)
 - [ ] Flyway script `V1__init_schema.sql` (tables + `stock_quantity` column on `products`)
 - [ ] `GlobalExceptionHandler`, `ApiResponse<T>`, `PageResponse<T>`
@@ -203,13 +205,20 @@ Same principle as the other tutorials in the series: every HTTP response is wrap
 
 ### Configuration notes
 
-- **Known compatibility risk (already hit on `spring-boot-tutorial`)**: Spring Boot 4.1.0 was
-  found to be incompatible with `springdoc-openapi` there, since no version published on Maven
-  Central supported Spring Framework 7 yet at implementation time; the fix was to fall back to
-  Spring Boot 3.5.16 (Spring Framework 6). Check compatibility of
-  `springdoc-openapi`/`mapstruct`/`spring-kafka`/`spring-kafka-test` with the target Boot
-  version **before** generating this project, and apply the same fallback if needed rather
-  than discovering the blocker mid-implementation.
+- **Spring Boot 3.5.16, not 4.1.x.** The project was first scoped around Spring Boot 4.1 /
+  Spring Framework 7, but springdoc-openapi had no release compatible with Spring Framework 7
+  on Maven Central at implementation time (the same blocker already hit on
+  `spring-boot-tutorial`). Spring Boot 3.5.16 (Spring Framework 6) was chosen directly instead
+  of re-checking compatibility, on the reasoning that the sibling project already validated
+  this combination of versions.
+- **`dependencyManagement` explicitly imports `spring-boot-dependencies`** as
+  `${project.parent.version}`, in addition to inheriting it via `<parent>`. This is redundant
+  (the parent POM already provides the same bill of materials) but makes version management
+  visible directly in `dependencyManagement`, matching `spring-boot-tutorial`.
+- **Compiling requires Java 17 explicitly.** The default `JAVA_HOME` on the development
+  machine points to Java 8, which fails with a "class file has wrong version" error against
+  Spring Boot 3.5.16. Run Maven with
+  `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./mvnw ...`.
 
 ## feature/products
 
