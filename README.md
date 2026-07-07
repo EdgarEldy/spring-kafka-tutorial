@@ -267,12 +267,22 @@ Classic `Category`/`Product` CRUD, with the `stockQuantity` field on `Product` (
 
 Classic `Customer` CRUD (identical to the other tutorials in the series).
 
+### Endpoints
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/api/v1/customers` | Paginated list, search by name (`?search=`) |
+| GET | `/api/v1/customers/{id}` | Customer detail |
+| POST | `/api/v1/customers` | Create a customer |
+| PUT | `/api/v1/customers/{id}` | Update a customer |
+| DELETE | `/api/v1/customers/{id}` | Delete a customer |
+
 ### Tasks
 
-- [ ] Entity, repository, DTOs, mapper
-- [ ] `CustomerService` interface + implementation
-- [ ] REST controller
-- [ ] Tests
+- [x] Entity, repository, DTOs, mapper
+- [x] `CustomerService` interface + implementation
+- [x] REST controller
+- [x] Tests
 
 ## feature/orders
 
