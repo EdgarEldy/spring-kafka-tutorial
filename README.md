@@ -288,13 +288,33 @@ Classic `Customer` CRUD (identical to the other tutorials in the series).
 
 `Order` CRUD **without messaging yet** - the Kafka trigger arrives in the next branch.
 
+### Endpoints
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/api/v1/orders` | Paginated list, filterable by `customerId` or `productId` |
+| GET | `/api/v1/orders/{id}` | Order detail |
+| POST | `/api/v1/orders` | Create an order (`total` computed automatically) |
+| PUT | `/api/v1/orders/{id}` | Update an order (`total` recomputed automatically) |
+| DELETE | `/api/v1/orders/{id}` | Delete an order |
+
 ### Tasks
 
-- [ ] `Order` entity, repository with joins
-- [ ] DTOs, mapper
-- [ ] `OrderService` interface + implementation: computes `total`, checks that the product has enough stock (`BusinessRuleException` otherwise)
-- [ ] REST controller
-- [ ] Tests
+- [x] `Order` entity, repository with joins
+- [x] DTOs, mapper
+- [x] `OrderService` interface + implementation: computes `total`, checks that the product has enough stock (`BusinessRuleException` otherwise)
+- [x] REST controller
+- [x] Tests
+
+### Notes
+
+- **Stock is checked here, not decremented.** `OrderServiceImpl` compares the requested quantity
+  against `product.stockQuantity` before accepting an order, but never writes to that column
+  itself. The actual decrement happens asynchronously in `feature/messaging`, once the Kafka
+  consumer processes the `OrderCreatedEvent` published after this order's transaction commits.
+- **No Kafka publication in this branch.** `OrderServiceImpl.create` neither publishes nor
+  depends on `OrderEventProducer`; that wiring is added strictly on top of `create()` in
+  `feature/messaging`, never here.
 
 ## feature/messaging
 
