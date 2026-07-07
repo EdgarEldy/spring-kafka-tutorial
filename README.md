@@ -197,11 +197,12 @@ Technical foundation shared by the whole project, to be merged first into `devel
 - [x] Dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-validation`, `spring-boot-starter-actuator`, `spring-kafka`, `flyway-core`, `flyway-database-postgresql`, `postgresql` driver, `lombok`, `mapstruct` + `mapstruct-processor`, `springdoc-openapi-starter-webmvc-ui`
 - [x] Test dependencies: `spring-boot-starter-test`, `spring-boot-testcontainers`, `spring-kafka-test` (for `EmbeddedKafka`), `testcontainers` (junit-jupiter, postgresql, kafka)
 - [x] Package tree shown above
-- [ ] `application.yml`/`application-dev.yml`: datasource, Kafka config (`bootstrap-servers`, default serializers)
-- [ ] Flyway script `V1__init_schema.sql` (tables + `stock_quantity` column on `products`)
-- [ ] `GlobalExceptionHandler`, `ApiResponse<T>`, `PageResponse<T>`
-- [ ] `docker-compose.yml`: PostgreSQL, Kafka in KRaft mode (no Zookeeper), and **Kafka UI** (web interface to inspect topics/messages/consumer groups)
-- [ ] `.github/workflows/ci.yml` (build + tests, with a Kafka service for integration tests)
+- [x] `application.yml`/`application-dev.yml`/`application-test.yml`/`application-prod.yml`: datasource, Kafka config (`bootstrap-servers`, producer/consumer serializers, trusted packages)
+- [x] Flyway script `V1__init_schema.sql` (tables + `stock_quantity` column on `products`)
+- [x] `GlobalExceptionHandler`, `ApiResponse<T>`, `PageResponse<T>`, `ErrorResponse`, `ResourceNotFoundException`, `BusinessRuleException`
+- [x] `OpenApiConfig`, `CorsConfig` (dev only)
+- [x] `docker-compose.yml`: Kafka in KRaft mode (no Zookeeper) and **Kafka UI** (web interface to inspect topics/messages/consumer groups)
+- [x] `.github/workflows/ci.yml` (build + tests; Testcontainers pulls its own Postgres/Kafka images on the runner, no extra `services:` block needed)
 
 ### Configuration notes
 
@@ -219,6 +220,22 @@ Technical foundation shared by the whole project, to be merged first into `devel
   machine points to Java 8, which fails with a "class file has wrong version" error against
   Spring Boot 3.5.16. Run Maven with
   `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./mvnw ...`.
+- **No dedicated PostgreSQL service in `docker-compose.yml`.** If you already have a Postgres
+  16 instance available (for example shared across several local projects), you can reuse it
+  instead of running a second Postgres container for this one. `scripts/init-postgres-db.sql`
+  creates a dedicated `spring_kafka_tutorial` database and role inside that existing instance;
+  see the script header for how to run it. The `app` service in `docker-compose.yml` joins an
+  external Docker network to reach that instance, declared generically as `external_postgres`
+  and resolved to your actual network name through the `POSTGRES_NETWORK_NAME` variable (see
+  `.env.example`).
+- **Secrets and machine specific names live in a gitignored `.env`, never in
+  `docker-compose.yml`.** `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_NETWORK_NAME` are
+  injected into the `app` service via `${...}` substitution; `.env.example` (committed)
+  documents the expected keys with placeholder values only.
+- **No `JacksonConfig` class**, even though the project structure sketch mentions one.
+  `spring.jackson.serialization.write-dates-as-timestamps=false` in `application.yml` already
+  covers the only date-serialization need of this tutorial, so a dedicated `@Configuration`
+  class would be redundant (same conclusion reached on `spring-boot-tutorial`).
 
 ## feature/products
 
