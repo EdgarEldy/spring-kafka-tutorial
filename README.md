@@ -241,12 +241,27 @@ Technical foundation shared by the whole project, to be merged first into `devel
 
 Classic `Category`/`Product` CRUD, with the `stockQuantity` field on `Product` (needed for `feature/messaging`).
 
+### Endpoints
+
+| Method | URL | Description |
+|---|---|---|
+| GET | `/api/v1/categories` | Paginated list of categories |
+| GET | `/api/v1/categories/{id}` | Category detail |
+| POST | `/api/v1/categories` | Create a category |
+| PUT | `/api/v1/categories/{id}` | Update a category |
+| DELETE | `/api/v1/categories/{id}` | Delete a category |
+| GET | `/api/v1/products` | Paginated list, filterable by `categoryId` |
+| GET | `/api/v1/products/{id}` | Product detail |
+| POST | `/api/v1/products` | Create a product |
+| PUT | `/api/v1/products/{id}` | Update a product |
+| DELETE | `/api/v1/products/{id}` | Delete a product |
+
 ### Tasks
 
-- [ ] Entities, repositories, DTOs, mappers
-- [ ] `CategoryService`/`ProductService` interfaces + implementations
-- [ ] REST controllers, pagination, filtering by `categoryId`
-- [ ] Unit and integration tests
+- [x] Entities, repositories, DTOs, mappers
+- [x] `CategoryService`/`ProductService` interfaces + implementations
+- [x] REST controllers, pagination, filtering by `categoryId`
+- [x] Unit and integration tests
 
 ## feature/customers
 
