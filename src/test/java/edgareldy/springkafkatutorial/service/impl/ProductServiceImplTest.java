@@ -12,9 +12,11 @@ import edgareldy.springkafkatutorial.dto.product.ProductRequest;
 import edgareldy.springkafkatutorial.dto.product.ProductResponse;
 import edgareldy.springkafkatutorial.entity.Category;
 import edgareldy.springkafkatutorial.entity.Product;
+import edgareldy.springkafkatutorial.exception.BusinessRuleException;
 import edgareldy.springkafkatutorial.exception.ResourceNotFoundException;
 import edgareldy.springkafkatutorial.mapper.ProductMapper;
 import edgareldy.springkafkatutorial.repository.CategoryRepository;
+import edgareldy.springkafkatutorial.repository.OrderRepository;
 import edgareldy.springkafkatutorial.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +47,9 @@ class ProductServiceImplTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @Mock
     private ProductMapper productMapper;
@@ -166,6 +171,7 @@ class ProductServiceImplTest {
     @Test
     void deleteRemovesProductWhenExists() {
         when(productRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.existsByProductId(1L)).thenReturn(false);
 
         productService.delete(1L);
 
@@ -178,6 +184,17 @@ class ProductServiceImplTest {
 
         assertThatThrownBy(() -> productService.delete(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(productRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteThrowsBusinessRuleExceptionWhenProductHasOrders() {
+        when(productRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.existsByProductId(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> productService.delete(1L))
+                .isInstanceOf(BusinessRuleException.class);
 
         verify(productRepository, never()).deleteById(any());
     }
