@@ -18,7 +18,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default {@link CustomerService} implementation backed by
- * {@link CustomerRepository}.
+ * {@link CustomerRepository}. Email uniqueness is checked case
+ * insensitively throughout (create, and update's self-check plus
+ * duplicate check), so two customers can never end up with emails that
+ * only differ by case.
  * <p>
  * Created edgar.muhamyangabo on 7/7/26
  * Author : edgar.muhamyangabo
@@ -48,7 +51,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponse create(CustomerRequest request) {
-        if (customerRepository.existsByEmail(request.email())) {
+        if (customerRepository.existsByEmailIgnoreCase(request.email())) {
             throw new BusinessRuleException("Email " + request.email() + " is already in use");
         }
         Customer customer = customerMapper.toEntity(request);
@@ -60,7 +63,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse update(Long id, CustomerRequest request) {
         Customer customer = getCustomerOrThrow(id);
         if (!customer.getEmail().equalsIgnoreCase(request.email())
-                && customerRepository.existsByEmail(request.email())) {
+                && customerRepository.existsByEmailIgnoreCase(request.email())) {
             throw new BusinessRuleException("Email " + request.email() + " is already in use");
         }
         customerMapper.updateEntityFromRequest(request, customer);

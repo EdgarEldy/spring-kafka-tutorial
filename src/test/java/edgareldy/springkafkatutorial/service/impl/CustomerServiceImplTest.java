@@ -97,7 +97,7 @@ class CustomerServiceImplTest {
     void createSavesWhenEmailUnused() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada@example.com", "1 Analytical Engine Way");
-        when(customerRepository.existsByEmail("ada@example.com")).thenReturn(false);
+        when(customerRepository.existsByEmailIgnoreCase("ada@example.com")).thenReturn(false);
         when(customerMapper.toEntity(request)).thenReturn(customer);
         when(customerRepository.save(customer)).thenReturn(customer);
         when(customerMapper.toResponse(customer)).thenReturn(customerResponse);
@@ -109,7 +109,19 @@ class CustomerServiceImplTest {
     void createThrowsWhenEmailAlreadyUsed() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada@example.com", "1 Analytical Engine Way");
-        when(customerRepository.existsByEmail("ada@example.com")).thenReturn(true);
+        when(customerRepository.existsByEmailIgnoreCase("ada@example.com")).thenReturn(true);
+
+        assertThatThrownBy(() -> customerService.create(request))
+                .isInstanceOf(BusinessRuleException.class);
+
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void createThrowsWhenEmailAlreadyUsedWithDifferentCase() {
+        CustomerRequest request = new CustomerRequest(
+                "Ada", "Lovelace", "+1 202-555-0100", "ADA@EXAMPLE.COM", "1 Analytical Engine Way");
+        when(customerRepository.existsByEmailIgnoreCase("ADA@EXAMPLE.COM")).thenReturn(true);
 
         assertThatThrownBy(() -> customerService.create(request))
                 .isInstanceOf(BusinessRuleException.class);
@@ -129,8 +141,23 @@ class CustomerServiceImplTest {
 
         assertThat(customerService.update(1L, request)).isEqualTo(updatedResponse);
 
-        verify(customerRepository, never()).existsByEmail(any());
+        verify(customerRepository, never()).existsByEmailIgnoreCase(any());
         verify(customerMapper).updateEntityFromRequest(request, customer);
+    }
+
+    @Test
+    void updateAppliesRequestWhenEmailUnchangedOnlyByCase() {
+        CustomerRequest request = new CustomerRequest(
+                "Ada", "Byron", "+1 202-555-0100", "ADA@EXAMPLE.COM", "2 Analytical Engine Way");
+        CustomerResponse updatedResponse = new CustomerResponse(
+                1L, "Ada", "Byron", "+1 202-555-0100", "ADA@EXAMPLE.COM", "2 Analytical Engine Way");
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(customerRepository.save(customer)).thenReturn(customer);
+        when(customerMapper.toResponse(customer)).thenReturn(updatedResponse);
+
+        assertThat(customerService.update(1L, request)).isEqualTo(updatedResponse);
+
+        verify(customerRepository, never()).existsByEmailIgnoreCase(any());
     }
 
     @Test
@@ -138,7 +165,7 @@ class CustomerServiceImplTest {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada.lovelace@example.com", "1 Analytical Engine Way");
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(customerRepository.existsByEmail("ada.lovelace@example.com")).thenReturn(true);
+        when(customerRepository.existsByEmailIgnoreCase("ada.lovelace@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> customerService.update(1L, request))
                 .isInstanceOf(BusinessRuleException.class);
