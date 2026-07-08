@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edgareldy.springkafkatutorial.dto.common.PageResponse;
 import edgareldy.springkafkatutorial.dto.product.ProductRequest;
 import edgareldy.springkafkatutorial.dto.product.ProductResponse;
+import edgareldy.springkafkatutorial.exception.BusinessRuleException;
 import edgareldy.springkafkatutorial.exception.ResourceNotFoundException;
 import edgareldy.springkafkatutorial.service.ProductService;
 import java.util.List;
@@ -165,6 +166,16 @@ class ProductControllerTest {
 
         mockMvc.perform(delete("/api/v1/products/99"))
                 .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void deleteReturns422WhenProductHasOrders() throws Exception {
+        doThrow(new BusinessRuleException("Product with id 1 still has orders and cannot be deleted"))
+                .when(productService).delete(1L);
+
+        mockMvc.perform(delete("/api/v1/products/1"))
+                .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.success").value(false));
     }
 }
