@@ -5,9 +5,11 @@ import edgareldy.springkafkatutorial.dto.product.ProductRequest;
 import edgareldy.springkafkatutorial.dto.product.ProductResponse;
 import edgareldy.springkafkatutorial.entity.Category;
 import edgareldy.springkafkatutorial.entity.Product;
+import edgareldy.springkafkatutorial.exception.BusinessRuleException;
 import edgareldy.springkafkatutorial.exception.ResourceNotFoundException;
 import edgareldy.springkafkatutorial.mapper.ProductMapper;
 import edgareldy.springkafkatutorial.repository.CategoryRepository;
+import edgareldy.springkafkatutorial.repository.OrderRepository;
 import edgareldy.springkafkatutorial.repository.ProductRepository;
 import edgareldy.springkafkatutorial.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderRepository orderRepository;
     private final ProductMapper productMapper;
 
     @Override
@@ -76,6 +79,10 @@ public class ProductServiceImpl implements ProductService {
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product not found with id " + id);
+        }
+        if (orderRepository.existsByProductId(id)) {
+            throw new BusinessRuleException(
+                    "Product with id " + id + " still has orders and cannot be deleted");
         }
         productRepository.deleteById(id);
     }
