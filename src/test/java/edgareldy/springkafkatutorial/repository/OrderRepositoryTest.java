@@ -48,6 +48,7 @@ class OrderRepositoryTest {
     private Customer grace;
     private Product keyboard;
     private Product desk;
+    private Product monitor;
 
     @BeforeEach
     void setUp() {
@@ -56,6 +57,8 @@ class OrderRepositoryTest {
                 .category(electronics).productName("Keyboard").unitPrice(79.99f).stockQuantity(50).build());
         desk = productRepository.save(Product.builder()
                 .category(electronics).productName("Desk").unitPrice(199.99f).stockQuantity(10).build());
+        monitor = productRepository.save(Product.builder()
+                .category(electronics).productName("Monitor").unitPrice(249.99f).stockQuantity(5).build());
 
         ada = customerRepository.save(Customer.builder()
                 .firstName("Ada").lastName("Lovelace").telephone("+1 202-555-0100")
@@ -107,5 +110,11 @@ class OrderRepositoryTest {
         assertThat(found).isPresent();
         assertThat(found.get().getCustomer().getFirstName()).isEqualTo("Ada");
         assertThat(found.get().getProduct().getProductName()).isEqualTo("Keyboard");
+    }
+
+    @Test
+    void existsByProductIdReflectsCurrentData() {
+        assertThat(orderRepository.existsByProductId(keyboard.getId())).isTrue();
+        assertThat(orderRepository.existsByProductId(monitor.getId())).isFalse();
     }
 }
