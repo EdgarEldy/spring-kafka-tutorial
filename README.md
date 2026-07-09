@@ -322,16 +322,40 @@ The core of the tutorial: Kafka integration, producer and consumer.
 
 ### Tasks
 
-- [ ] `KafkaProducerConfig`: `ProducerFactory<String, OrderCreatedEvent>`, `KafkaTemplate`, `JsonSerializer`
-- [ ] `KafkaConsumerConfig`: `ConsumerFactory`, `ConcurrentKafkaListenerContainerFactory`, `JsonDeserializer` (with `TRUSTED_PACKAGES` configured), dedicated `group-id`
-- [ ] `OrderEventProducer`: publishes an `OrderCreatedEvent` (orderId, productId, quantity) to the `order-events` topic, **partitioning key = `productId`** (guarantees that all events for a given product are processed in order by the same partition)
-- [ ] `OrderServiceImpl`: after an order is successfully created, calls `OrderEventProducer.publish(...)` (ideally after the transaction commits, via `TransactionSynchronizationManager` or `@TransactionalEventListener`)
-- [ ] `OrderEventConsumer` (`@KafkaListener` on `order-events`): calls `StockService.decrementStock(productId, quantity)`
-- [ ] `StockService` interface + `StockServiceImpl` implementation: decrements `stock_quantity`, throws a business exception if stock would go negative
-- [ ] Consumption error handling: `DefaultErrorHandler` with **retry** (e.g. 3 attempts, exponential backoff) then routing to a **dead-letter topic** (`order-events-dlt`) via `DeadLetterPublishingRecoverer`
-- [ ] `OrderEventDltConsumer`: consumes the DLT, logs the final failure (basis for an alert or manual handling)
-- [ ] Configuring the **number of partitions** of the `order-events` topic (e.g. 3) and explaining the impact on consumption parallelism
-- [ ] Tests: `EmbeddedKafka` for fast in-memory tests, Testcontainers Kafka for tests closer to production; verify publishing, consumption, and DLT behavior on a simulated exception
+- [x] `KafkaProducerConfig`: `ProducerFactory<String, OrderCreatedEvent>`, `KafkaTemplate`, `JsonSerializer`
+- [x] `KafkaConsumerConfig`: `ConsumerFactory`, `ConcurrentKafkaListenerContainerFactory`, `JsonDeserializer` (with `TRUSTED_PACKAGES` configured), dedicated `group-id`
+- [x] `OrderEventProducer`: publishes an `OrderCreatedEvent` (orderId, productId, quantity) to the `order-events` topic, **partitioning key = `productId`** (guarantees that all events for a given product are processed in order by the same partition)
+- [x] `OrderServiceImpl`: after an order is successfully created, calls `OrderEventProducer.publish(...)` (the actual send is deferred until the transaction commits, via `TransactionSynchronizationManager`)
+- [x] `OrderEventConsumer` (`@KafkaListener` on `order-events`): calls `StockService.decrementStock(productId, quantity)`
+- [x] `StockService` interface + `StockServiceImpl` implementation: decrements `stock_quantity`, throws a business exception if stock would go negative
+- [x] Consumption error handling: `DefaultErrorHandler` with **retry** (exponential backoff, `ExponentialBackOffWithMaxRetries`) then routing to a **dead-letter topic** (`order-events-dlt`) via `DeadLetterPublishingRecoverer`
+- [x] `OrderEventDltConsumer`: consumes the DLT, logs the final failure (basis for an alert or manual handling)
+- [x] Configuring the **number of partitions** of the `order-events` topic (3, via a `NewTopic` bean) and explaining the impact on consumption parallelism
+- [x] Tests: `EmbeddedKafka` for fast in-memory tests, Testcontainers Kafka for tests closer to production; verify publishing, consumption, and DLT behavior on a simulated exception
+
+### Notes
+
+- **`KafkaProducerConfig`/`KafkaConsumerConfig` inject `KafkaConnectionDetails`, not
+  `@Value("${spring.kafka.bootstrap-servers}")`.** A `@Value` placeholder only resolves from
+  `application.yml`; the Testcontainers `@ServiceConnection` used by tests overrides Spring
+  Boot's `KafkaConnectionDetails` abstraction instead of that raw property, so a hand-rolled
+  `ProducerFactory`/`ConsumerFactory` reading the property directly would fail to find a
+  broker address in tests. Reading through `KafkaConnectionDetails` works in both dev/prod
+  (backed by `spring.kafka.bootstrap-servers`) and tests (backed by the container), and is the
+  same abstraction Spring Boot's own autoconfiguration uses internally.
+- **`spring.kafka.consumer.group-id` lives in the base `application.yml`, not only in the
+  per-profile files.** No test in this project activates a Spring profile (`mvn test` always
+  logs "No active profile set"), so `application-test.yml` never actually loads during
+  `@SpringBootTest`; a property only defined per-profile would leave the placeholder
+  unresolved and fail every context load. This is a pre-existing characteristic of the test
+  setup from earlier branches, not something newly introduced here.
+- **Order creation never decrements stock itself.** `OrderServiceImpl.create` only checks
+  sufficient stock and publishes `OrderCreatedEvent`; `StockServiceImpl.decrementStock` is the
+  only place `stock_quantity` is written, called exclusively from `OrderEventConsumer`. This
+  is the asynchronous decoupling the whole tutorial is built around.
+- **At-least-once delivery means `decrementStock` can run more than once for the same order.**
+  This project does not implement idempotency (e.g. a processed-order-ids table); it is called
+  out as a known, deliberate limitation in `StockServiceImpl`'s Javadoc.
 
 ## feature/schema-registry (bonus)
 
