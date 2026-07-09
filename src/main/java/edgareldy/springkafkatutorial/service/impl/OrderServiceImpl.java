@@ -1,6 +1,7 @@
 package edgareldy.springkafkatutorial.service.impl;
 
 import edgareldy.springkafkatutorial.dto.common.PageResponse;
+import edgareldy.springkafkatutorial.dto.event.OrderCreatedEvent;
 import edgareldy.springkafkatutorial.dto.order.OrderRequest;
 import edgareldy.springkafkatutorial.dto.order.OrderResponse;
 import edgareldy.springkafkatutorial.entity.Customer;
@@ -9,6 +10,7 @@ import edgareldy.springkafkatutorial.entity.Product;
 import edgareldy.springkafkatutorial.exception.BusinessRuleException;
 import edgareldy.springkafkatutorial.exception.ResourceNotFoundException;
 import edgareldy.springkafkatutorial.mapper.OrderMapper;
+import edgareldy.springkafkatutorial.messaging.producer.OrderEventProducer;
 import edgareldy.springkafkatutorial.repository.CustomerRepository;
 import edgareldy.springkafkatutorial.repository.OrderRepository;
 import edgareldy.springkafkatutorial.repository.ProductRepository;
@@ -23,10 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
  * Default {@link OrderService} implementation backed by
  * {@link OrderRepository}. Checks that the product has enough stock before
  * accepting an order, but never decrements {@code stockQuantity} itself:
- * that happens asynchronously, once an {@code OrderCreatedEvent} is
- * consumed from Kafka in feature/messaging. This is the classic use case
- * for going asynchronous documented in the README: order creation responds
- * to the caller immediately, without waiting for the stock update.
+ * {@link #create(OrderRequest)} only publishes an {@code OrderCreatedEvent}
+ * through {@link OrderEventProducer}, and the actual decrement happens
+ * asynchronously once that event is consumed from Kafka. This is the
+ * classic use case for going asynchronous documented in the README: order
+ * creation responds to the caller immediately, without waiting for the
+ * stock update. {@code update}/{@code delete} never publish anything: only
+ * order creation triggers the stock-impacting event.
  * <p>
  * Created edgar.muhamyangabo on 7/7/26
  * Author : edgar.muhamyangabo
@@ -41,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
+    private final OrderEventProducer orderEventProducer;
 
     @Override
     public PageResponse<OrderResponse> findAll(Long customerId, Long productId, Pageable pageable) {
@@ -73,7 +79,12 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomer(customer);
         order.setProduct(product);
         order.setTotal(computeTotal(product, request.quantity()));
-        return orderMapper.toResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+
+        orderEventProducer.publish(
+                new OrderCreatedEvent(savedOrder.getId(), product.getId(), request.quantity()));
+
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Override
