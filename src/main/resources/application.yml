@@ -4,6 +4,9 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  kafka:
+    consumer:
+      group-id: stock-service
 
 server:
   port: 8080
