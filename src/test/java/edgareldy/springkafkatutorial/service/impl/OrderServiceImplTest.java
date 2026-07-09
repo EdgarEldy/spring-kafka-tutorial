@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edgareldy.springkafkatutorial.dto.common.PageResponse;
+import edgareldy.springkafkatutorial.dto.event.OrderCreatedEvent;
 import edgareldy.springkafkatutorial.dto.order.OrderRequest;
 import edgareldy.springkafkatutorial.dto.order.OrderResponse;
 import edgareldy.springkafkatutorial.entity.Category;
@@ -17,6 +18,7 @@ import edgareldy.springkafkatutorial.entity.Product;
 import edgareldy.springkafkatutorial.exception.BusinessRuleException;
 import edgareldy.springkafkatutorial.exception.ResourceNotFoundException;
 import edgareldy.springkafkatutorial.mapper.OrderMapper;
+import edgareldy.springkafkatutorial.messaging.producer.OrderEventProducer;
 import edgareldy.springkafkatutorial.repository.CustomerRepository;
 import edgareldy.springkafkatutorial.repository.OrderRepository;
 import edgareldy.springkafkatutorial.repository.ProductRepository;
@@ -34,8 +36,8 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * Unit tests for {@link OrderServiceImpl}, with {@link OrderRepository},
- * {@link CustomerRepository}, {@link ProductRepository}, and
- * {@link OrderMapper} mocked.
+ * {@link CustomerRepository}, {@link ProductRepository},
+ * {@link OrderMapper}, and {@link OrderEventProducer} mocked.
  * <p>
  * Created edgar.muhamyangabo on 7/7/26
  * Author : edgar.muhamyangabo
@@ -56,6 +58,9 @@ class OrderServiceImplTest {
 
     @Mock
     private OrderMapper orderMapper;
+
+    @Mock
+    private OrderEventProducer orderEventProducer;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -136,6 +141,20 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void createPublishesOrderCreatedEventAfterSaving() {
+        OrderRequest request = new OrderRequest(1L, 1L, 2);
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(orderMapper.toEntity(request)).thenReturn(order);
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderMapper.toResponse(order)).thenReturn(orderResponse);
+
+        orderService.create(request);
+
+        verify(orderEventProducer).publish(new OrderCreatedEvent(order.getId(), product.getId(), 2));
+    }
+
+    @Test
     void createThrowsWhenCustomerMissing() {
         OrderRequest request = new OrderRequest(99L, 1L, 2);
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -144,6 +163,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(orderRepository, never()).save(any());
+        verify(orderEventProducer, never()).publish(any());
     }
 
     @Test
@@ -156,6 +176,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(orderRepository, never()).save(any());
+        verify(orderEventProducer, never()).publish(any());
     }
 
     @Test
@@ -168,6 +189,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(BusinessRuleException.class);
 
         verify(orderRepository, never()).save(any());
+        verify(orderEventProducer, never()).publish(any());
     }
 
     @Test
@@ -183,6 +205,7 @@ class OrderServiceImplTest {
 
         assertThat(order.getTotal()).isEqualTo(79.99f * 3);
         verify(orderMapper).updateEntityFromRequest(request, order);
+        verify(orderEventProducer, never()).publish(any());
     }
 
     @Test
