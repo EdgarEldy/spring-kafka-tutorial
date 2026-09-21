@@ -50,7 +50,7 @@ class CategoryControllerTest {
     private CategoryService categoryService;
 
     @Test
-    void findAllReturnsPagedCategories() throws Exception {
+    void _01_ShouldReturnPagedCategories_WhenCategoriesAreRequested() throws Exception {
         CategoryResponse category = new CategoryResponse(1L, "Electronics");
         PageResponse<CategoryResponse> page = new PageResponse<>(List.of(category), 0, 20, 1, 1);
         when(categoryService.findAll(any())).thenReturn(page);
@@ -62,7 +62,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void findByIdReturnsCategoryWhenFound() throws Exception {
+    void _02_ShouldReturnCategory_WhenCategoryIsFound() throws Exception {
         when(categoryService.findById(1L)).thenReturn(new CategoryResponse(1L, "Electronics"));
 
         mockMvc.perform(get("/api/v1/categories/1"))
@@ -71,7 +71,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void findByIdReturns404WhenMissing() throws Exception {
+    void _03_ShouldReturn404_WhenCategoryIsMissing() throws Exception {
         when(categoryService.findById(eq(99L)))
                 .thenThrow(new ResourceNotFoundException("Category not found with id 99"));
 
@@ -81,7 +81,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void createReturns201WhenValid() throws Exception {
+    void _04_ShouldReturn201_WhenCreateRequestIsValid() throws Exception {
         when(categoryService.create(any())).thenReturn(new CategoryResponse(2L, "Books"));
 
         mockMvc.perform(post("/api/v1/categories")
@@ -92,7 +92,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void createReturns400WhenNameBlank() throws Exception {
+    void _05_ShouldReturn400_WhenCategoryNameIsBlank() throws Exception {
         mockMvc.perform(post("/api/v1/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new CategoryRequest(""))))
@@ -101,7 +101,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void updateReturns200WhenValid() throws Exception {
+    void _06_ShouldReturn200_WhenUpdateRequestIsValid() throws Exception {
         when(categoryService.update(eq(1L), any())).thenReturn(new CategoryResponse(1L, "Home Appliances"));
 
         mockMvc.perform(put("/api/v1/categories/1")
@@ -112,7 +112,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void updateReturns404WhenMissing() throws Exception {
+    void _07_ShouldReturn404_WhenUpdatedCategoryIsMissing() throws Exception {
         when(categoryService.update(eq(99L), any()))
                 .thenThrow(new ResourceNotFoundException("Category not found with id 99"));
 
@@ -124,14 +124,14 @@ class CategoryControllerTest {
     }
 
     @Test
-    void deleteReturns200WhenSuccessful() throws Exception {
+    void _08_ShouldReturn200_WhenCategoryIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v1/categories/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
-    void deleteReturns404WhenMissing() throws Exception {
+    void _09_ShouldReturn404_WhenDeletedCategoryIsMissing() throws Exception {
         doThrow(new ResourceNotFoundException("Category not found with id 99"))
                 .when(categoryService).delete(99L);
 
@@ -141,7 +141,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    void deleteReturns422WhenCategoryHasProducts() throws Exception {
+    void _10_ShouldReturn422_WhenCategoryStillHasProducts() throws Exception {
         doThrow(new BusinessRuleException("Category with id 1 still has products and cannot be deleted"))
                 .when(categoryService).delete(1L);
 
