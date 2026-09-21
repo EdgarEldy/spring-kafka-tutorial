@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 class SpringKafkaTutorialApplicationTests {
 
     @Test
-    void contextLoads() {
+    void _01_ShouldLoadApplicationContext_WhenApplicationStarts() {
     }
 
 }
