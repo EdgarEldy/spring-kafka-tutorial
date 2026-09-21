@@ -30,7 +30,7 @@ class OrderEventConsumerTest {
     private OrderEventConsumer orderEventConsumer;
 
     @Test
-    void consumeDelegatesToStockService() {
+    void _01_ShouldDelegateToStockService_WhenEventIsConsumed() {
         OrderCreatedEvent event = new OrderCreatedEvent(1L, 2L, 3);
 
         orderEventConsumer.consume(event);
