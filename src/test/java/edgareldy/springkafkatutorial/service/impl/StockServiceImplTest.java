@@ -48,7 +48,7 @@ class StockServiceImplTest {
     }
 
     @Test
-    void decrementStockReducesStockQuantityWhenSufficient() {
+    void _01_ShouldReduceStockQuantity_WhenStockIsSufficient() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         stockService.decrementStock(1L, 4);
@@ -59,7 +59,7 @@ class StockServiceImplTest {
     }
 
     @Test
-    void decrementStockAllowsReachingExactlyZero() {
+    void _02_ShouldReachExactlyZero_WhenQuantityEqualsStock() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         stockService.decrementStock(1L, 10);
@@ -70,7 +70,7 @@ class StockServiceImplTest {
     }
 
     @Test
-    void decrementStockThrowsWhenQuantityExceedsStock() {
+    void _03_ShouldThrowBusinessRuleException_WhenQuantityExceedsStock() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         assertThatThrownBy(() -> stockService.decrementStock(1L, 11))
@@ -80,7 +80,7 @@ class StockServiceImplTest {
     }
 
     @Test
-    void decrementStockThrowsWhenProductMissing() {
+    void _04_ShouldThrowNotFound_WhenProductIsMissing() {
         when(productRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> stockService.decrementStock(99L, 1))
