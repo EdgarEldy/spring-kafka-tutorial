@@ -82,7 +82,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void findAllWithoutFilterUsesPlainFindAll() {
+    void _01_ShouldUsePlainFindAll_WhenNoFilterIsGiven() {
         Pageable pageable = PageRequest.of(0, 10);
         when(orderRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(order), pageable, 1));
         when(orderMapper.toResponse(order)).thenReturn(orderResponse);
@@ -93,7 +93,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void findAllWithCustomerIdFiltersByCustomer() {
+    void _02_ShouldFilterByCustomer_WhenCustomerIdIsGiven() {
         Pageable pageable = PageRequest.of(0, 10);
         when(orderRepository.findByCustomerId(1L, pageable)).thenReturn(new PageImpl<>(List.of(order), pageable, 1));
         when(orderMapper.toResponse(order)).thenReturn(orderResponse);
@@ -106,7 +106,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void findAllWithProductIdFiltersByProduct() {
+    void _03_ShouldFilterByProduct_WhenProductIdIsGiven() {
         Pageable pageable = PageRequest.of(0, 10);
         when(orderRepository.findByProductId(1L, pageable)).thenReturn(new PageImpl<>(List.of(order), pageable, 1));
         when(orderMapper.toResponse(order)).thenReturn(orderResponse);
@@ -119,7 +119,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void findByIdThrowsWhenMissing() {
+    void _04_ShouldThrowNotFound_WhenOrderIsMissing() {
         when(orderRepository.findByIdWithDetails(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.findById(99L))
@@ -127,7 +127,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void createComputesTotalAndSavesWhenStockSufficient() {
+    void _05_ShouldComputeTotalAndSave_WhenStockIsSufficient() {
         OrderRequest request = new OrderRequest(1L, 1L, 2);
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -141,7 +141,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void createPublishesOrderCreatedEventAfterSaving() {
+    void _06_ShouldPublishOrderCreatedEvent_WhenOrderIsSaved() {
         OrderRequest request = new OrderRequest(1L, 1L, 2);
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -155,7 +155,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void createThrowsWhenCustomerMissing() {
+    void _07_ShouldThrowNotFound_WhenOrderCustomerIsMissing() {
         OrderRequest request = new OrderRequest(99L, 1L, 2);
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -167,7 +167,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void createThrowsWhenProductMissing() {
+    void _08_ShouldThrowNotFound_WhenOrderProductIsMissing() {
         OrderRequest request = new OrderRequest(1L, 99L, 2);
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(99L)).thenReturn(Optional.empty());
@@ -180,7 +180,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void createThrowsWhenStockInsufficient() {
+    void _09_ShouldThrowBusinessRuleException_WhenStockIsInsufficient() {
         OrderRequest request = new OrderRequest(1L, 1L, 100);
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -193,7 +193,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void updateRecomputesTotalWhenStockSufficient() {
+    void _10_ShouldRecomputeTotal_WhenStockIsSufficientOnUpdate() {
         OrderRequest request = new OrderRequest(1L, 1L, 3);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -209,7 +209,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void updateThrowsWhenOrderMissing() {
+    void _11_ShouldThrowNotFound_WhenUpdatedOrderIsMissing() {
         OrderRequest request = new OrderRequest(1L, 1L, 2);
         when(orderRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -220,7 +220,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void updateThrowsWhenStockInsufficient() {
+    void _12_ShouldThrowBusinessRuleException_WhenStockIsInsufficientOnUpdate() {
         OrderRequest request = new OrderRequest(1L, 1L, 100);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -233,7 +233,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void deleteRemovesOrderWhenExists() {
+    void _13_ShouldRemoveOrder_WhenOrderExists() {
         when(orderRepository.existsById(1L)).thenReturn(true);
 
         orderService.delete(1L);
@@ -242,7 +242,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void deleteThrowsWhenMissing() {
+    void _14_ShouldThrowNotFound_WhenDeletedOrderIsMissing() {
         when(orderRepository.existsById(99L)).thenReturn(false);
 
         assertThatThrownBy(() -> orderService.delete(99L))
