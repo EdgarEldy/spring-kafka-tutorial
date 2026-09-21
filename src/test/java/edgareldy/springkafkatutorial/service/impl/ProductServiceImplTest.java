@@ -189,7 +189,7 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void deleteThrowsBusinessRuleExceptionWhenProductHasOrders() {
+    void _12_ShouldThrowBusinessRuleException_WhenProductHasOrders() {
         when(productRepository.existsById(1L)).thenReturn(true);
         when(orderRepository.existsByProductId(1L)).thenReturn(true);
 
