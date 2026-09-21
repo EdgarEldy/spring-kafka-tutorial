@@ -113,7 +113,7 @@ class OrderRepositoryTest {
     }
 
     @Test
-    void existsByProductIdReflectsCurrentData() {
+    void _05_ShouldReflectCurrentData_WhenCheckingExistenceByProductId() {
         assertThat(orderRepository.existsByProductId(keyboard.getId())).isTrue();
         assertThat(orderRepository.existsByProductId(monitor.getId())).isFalse();
     }
