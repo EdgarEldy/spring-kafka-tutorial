@@ -28,7 +28,7 @@ class CategoryRepositoryTest {
     private CategoryRepository categoryRepository;
 
     @Test
-    void savesAndFindsCategoryById() {
+    void _01_ShouldSaveAndFindCategory_WhenFindingById() {
         Category saved = categoryRepository.save(Category.builder().categoryName("Books").build());
 
         assertThat(categoryRepository.findById(saved.getId()))
@@ -39,7 +39,7 @@ class CategoryRepositoryTest {
     }
 
     @Test
-    void findAllReturnsSavedCategories() {
+    void _02_ShouldReturnSavedCategories_WhenFindingAll() {
         categoryRepository.save(Category.builder().categoryName("Toys").build());
         categoryRepository.save(Category.builder().categoryName("Garden").build());
 
