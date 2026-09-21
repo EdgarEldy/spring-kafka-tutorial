@@ -61,7 +61,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void findAllWithoutSearchUsesPlainFindAll() {
+    void _01_ShouldUsePlainFindAll_WhenNoSearchTermIsGiven() {
         Pageable pageable = PageRequest.of(0, 10);
         when(customerRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(customer), pageable, 1));
         when(customerMapper.toResponse(customer)).thenReturn(customerResponse);
@@ -73,7 +73,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void findAllWithSearchUsesSearchQuery() {
+    void _02_ShouldUseSearchQuery_WhenSearchTermIsGiven() {
         Pageable pageable = PageRequest.of(0, 10);
         when(customerRepository.search("lovelace", pageable))
                 .thenReturn(new PageImpl<>(List.of(customer), pageable, 1));
@@ -86,7 +86,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void findByIdThrowsWhenMissing() {
+    void _03_ShouldThrowNotFound_WhenCustomerIsMissing() {
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customerService.findById(99L))
@@ -94,7 +94,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void createSavesWhenEmailUnused() {
+    void _04_ShouldSaveCustomer_WhenEmailIsUnused() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada@example.com", "1 Analytical Engine Way");
         when(customerRepository.existsByEmail("ada@example.com")).thenReturn(false);
@@ -106,7 +106,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void createThrowsWhenEmailAlreadyUsed() {
+    void _05_ShouldThrowBusinessRuleException_WhenEmailIsAlreadyUsed() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada@example.com", "1 Analytical Engine Way");
         when(customerRepository.existsByEmail("ada@example.com")).thenReturn(true);
@@ -118,7 +118,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void updateAppliesRequestWhenEmailUnchanged() {
+    void _06_ShouldApplyRequest_WhenEmailIsUnchanged() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Byron", "+1 202-555-0100", "ada@example.com", "2 Analytical Engine Way");
         CustomerResponse updatedResponse = new CustomerResponse(
@@ -134,7 +134,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void updateThrowsWhenNewEmailAlreadyUsedByAnotherCustomer() {
+    void _07_ShouldThrowBusinessRuleException_WhenNewEmailIsUsedByAnotherCustomer() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada.lovelace@example.com", "1 Analytical Engine Way");
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -147,7 +147,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void updateThrowsWhenMissing() {
+    void _08_ShouldThrowNotFound_WhenUpdatedCustomerIsMissing() {
         CustomerRequest request = new CustomerRequest(
                 "Ada", "Lovelace", "+1 202-555-0100", "ada@example.com", "1 Analytical Engine Way");
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -157,7 +157,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void deleteRemovesCustomerWhenExists() {
+    void _09_ShouldRemoveCustomer_WhenCustomerExists() {
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
 
         customerService.delete(1L);
@@ -166,7 +166,7 @@ class CustomerServiceImplTest {
     }
 
     @Test
-    void deleteThrowsWhenMissing() {
+    void _10_ShouldThrowNotFound_WhenDeletedCustomerIsMissing() {
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customerService.delete(99L))

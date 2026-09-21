@@ -50,7 +50,7 @@ class ProductRepositoryTest {
     }
 
     @Test
-    void findAllEagerlyLoadsCategoryForEveryProduct() {
+    void _01_ShouldLoadCategoryEagerlyForEveryProduct_WhenFindingAll() {
         var page = productRepository.findAll(PageRequest.of(0, 10));
 
         assertThat(page.getContent()).hasSize(2);
@@ -63,14 +63,14 @@ class ProductRepositoryTest {
     }
 
     @Test
-    void findByCategoryIdReturnsOnlyMatchingProducts() {
+    void _02_ShouldReturnOnlyMatchingProducts_WhenFindingByCategoryId() {
         var page = productRepository.findByCategoryId(electronics.getId(), PageRequest.of(0, 10));
 
         assertThat(page.getContent()).extracting(Product::getProductName).containsExactly("Keyboard");
     }
 
     @Test
-    void findByIdWithCategoryEagerlyLoadsCategory() {
+    void _03_ShouldLoadCategoryEagerly_WhenFindingByIdWithCategory() {
         Long productId = productRepository.findByCategoryId(furniture.getId(), PageRequest.of(0, 10))
                 .getContent().get(0).getId();
 
@@ -81,7 +81,7 @@ class ProductRepositoryTest {
     }
 
     @Test
-    void existsByCategoryIdReflectsCurrentData() {
+    void _04_ShouldReflectCurrentData_WhenCheckingExistenceByCategoryId() {
         assertThat(productRepository.existsByCategoryId(electronics.getId())).isTrue();
 
         Category empty = categoryRepository.save(Category.builder().categoryName("Empty").build());

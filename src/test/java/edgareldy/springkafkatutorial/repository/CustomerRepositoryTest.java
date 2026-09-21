@@ -41,7 +41,7 @@ class CustomerRepositoryTest {
     }
 
     @Test
-    void findByEmailReturnsMatchingCustomer() {
+    void _01_ShouldReturnMatchingCustomer_WhenFindingByEmail() {
         assertThat(customerRepository.findByEmail("ada@example.com"))
                 .isPresent()
                 .get()
@@ -50,13 +50,13 @@ class CustomerRepositoryTest {
     }
 
     @Test
-    void existsByEmailReflectsCurrentData() {
+    void _02_ShouldReflectCurrentData_WhenCheckingExistenceByEmail() {
         assertThat(customerRepository.existsByEmail("ada@example.com")).isTrue();
         assertThat(customerRepository.existsByEmail("unknown@example.com")).isFalse();
     }
 
     @Test
-    void searchMatchesCaseInsensitiveFullName() {
+    void _03_ShouldMatchFullNameIgnoringCase_WhenSearching() {
         var page = customerRepository.search("ada lovelace", PageRequest.of(0, 10));
 
         assertThat(page.getContent()).extracting(Customer::getEmail).containsExactly("ada@example.com");
