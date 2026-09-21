@@ -170,7 +170,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void deleteReturns422WhenProductHasOrders() throws Exception {
+    void _12_ShouldReturn422_WhenProductStillHasOrders() throws Exception {
         doThrow(new BusinessRuleException("Product with id 1 still has orders and cannot be deleted"))
                 .when(productService).delete(1L);
 
