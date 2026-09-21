@@ -62,7 +62,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void findAllReturnsMappedPage() {
+    void _01_ShouldReturnMappedPage_WhenAllCategoriesAreRequested() {
         Pageable pageable = PageRequest.of(0, 10);
         when(categoryRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(category), pageable, 1));
         when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
@@ -74,7 +74,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void findByIdReturnsResponseWhenFound() {
+    void _02_ShouldReturnResponse_WhenCategoryIsFound() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
 
@@ -82,7 +82,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void findByIdThrowsWhenMissing() {
+    void _03_ShouldThrowNotFound_WhenCategoryIsMissing() {
         when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> categoryService.findById(99L))
@@ -90,7 +90,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void createSavesAndReturnsResponse() {
+    void _04_ShouldSaveAndReturnResponse_WhenCategoryIsCreated() {
         CategoryRequest request = new CategoryRequest("Electronics");
         when(categoryMapper.toEntity(request)).thenReturn(category);
         when(categoryRepository.save(category)).thenReturn(category);
@@ -100,7 +100,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void updateAppliesRequestAndReturnsResponse() {
+    void _05_ShouldApplyRequestAndReturnResponse_WhenCategoryIsUpdated() {
         CategoryRequest request = new CategoryRequest("Home Appliances");
         CategoryResponse updatedResponse = new CategoryResponse(1L, "Home Appliances");
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -113,7 +113,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void updateThrowsWhenMissing() {
+    void _06_ShouldThrowNotFound_WhenUpdatedCategoryIsMissing() {
         CategoryRequest request = new CategoryRequest("Home Appliances");
         when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -124,7 +124,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void deleteRemovesCategoryWhenEmpty() {
+    void _07_ShouldRemoveCategory_WhenCategoryHasNoProducts() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(productRepository.existsByCategoryId(1L)).thenReturn(false);
 
@@ -134,7 +134,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void deleteThrowsBusinessRuleExceptionWhenCategoryHasProducts() {
+    void _08_ShouldThrowBusinessRuleException_WhenCategoryHasProducts() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(productRepository.existsByCategoryId(1L)).thenReturn(true);
 
@@ -145,7 +145,7 @@ class CategoryServiceImplTest {
     }
 
     @Test
-    void deleteThrowsResourceNotFoundExceptionWhenMissing() {
+    void _09_ShouldThrowResourceNotFoundException_WhenDeletedCategoryIsMissing() {
         when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> categoryService.delete(99L))

@@ -85,7 +85,7 @@ class OrderEventProducerTest {
     }
 
     @Test
-    void publishSendsEventKeyedByProductId() throws InterruptedException {
+    void _01_ShouldSendEventKeyedByProductId_WhenEventIsPublished() throws InterruptedException {
         OrderCreatedEvent event = new OrderCreatedEvent(1L, 42L, 3);
 
         orderEventProducer.publish(event);

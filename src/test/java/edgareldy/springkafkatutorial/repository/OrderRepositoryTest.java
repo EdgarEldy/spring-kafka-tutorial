@@ -72,7 +72,7 @@ class OrderRepositoryTest {
     }
 
     @Test
-    void findAllEagerlyLoadsCustomerAndProductForEveryOrder() {
+    void _01_ShouldLoadCustomerAndProductEagerly_WhenFindingAll() {
         var page = orderRepository.findAll(PageRequest.of(0, 10));
 
         assertThat(page.getContent()).hasSize(2);
@@ -87,21 +87,21 @@ class OrderRepositoryTest {
     }
 
     @Test
-    void findByCustomerIdReturnsOnlyMatchingOrders() {
+    void _02_ShouldReturnOnlyMatchingOrders_WhenFindingByCustomerId() {
         var page = orderRepository.findByCustomerId(ada.getId(), PageRequest.of(0, 10));
 
         assertThat(page.getContent()).extracting(o -> o.getProduct().getProductName()).containsExactly("Keyboard");
     }
 
     @Test
-    void findByProductIdReturnsOnlyMatchingOrders() {
+    void _03_ShouldReturnOnlyMatchingOrders_WhenFindingByProductId() {
         var page = orderRepository.findByProductId(desk.getId(), PageRequest.of(0, 10));
 
         assertThat(page.getContent()).extracting(o -> o.getCustomer().getLastName()).containsExactly("Hopper");
     }
 
     @Test
-    void findByIdWithDetailsEagerlyLoadsCustomerAndProduct() {
+    void _04_ShouldLoadCustomerAndProductEagerly_WhenFindingByIdWithDetails() {
         Long orderId = orderRepository.findByCustomerId(ada.getId(), PageRequest.of(0, 10))
                 .getContent().get(0).getId();
 
@@ -113,7 +113,7 @@ class OrderRepositoryTest {
     }
 
     @Test
-    void existsByProductIdReflectsCurrentData() {
+    void _05_ShouldReflectCurrentData_WhenCheckingExistenceByProductId() {
         assertThat(orderRepository.existsByProductId(keyboard.getId())).isTrue();
         assertThat(orderRepository.existsByProductId(monitor.getId())).isFalse();
     }
