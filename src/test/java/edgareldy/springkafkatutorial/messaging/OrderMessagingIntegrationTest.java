@@ -79,7 +79,7 @@ class OrderMessagingIntegrationTest {
     }
 
     @Test
-    void publishingOrderCreatedEventEventuallyDecrementsStock() {
+    void _01_ShouldEventuallyDecrementStock_WhenOrderCreatedEventIsPublished() {
         Category category = categoryRepository.save(Category.builder().categoryName("Electronics").build());
         Product product = productRepository.save(Product.builder()
                 .category(category).productName("Keyboard").unitPrice(79.99f).stockQuantity(10).build());
@@ -93,7 +93,7 @@ class OrderMessagingIntegrationTest {
     }
 
     @Test
-    void eventThatKeepsFailingLandsOnDeadLetterTopicAndNeverDecrementsStock() throws InterruptedException {
+    void _02_ShouldLandOnDeadLetterTopicAndKeepStock_WhenEventKeepsFailing() throws InterruptedException {
         Category category = categoryRepository.save(Category.builder().categoryName("Electronics").build());
         Product product = productRepository.save(Product.builder()
                 .category(category).productName("Out of Stock Monitor").unitPrice(249.99f).stockQuantity(0).build());
